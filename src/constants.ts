@@ -15,5 +15,9 @@ export const Chats: ChatType[] = [
   {
     id: 384938855,
     pairs: [Pairs[0], Pairs[1], Pairs[2]]
+  },
+  {
+    id: 163913615,
+    pairs: [Pairs[0], Pairs[1], Pairs[2]]
   }
 ]
