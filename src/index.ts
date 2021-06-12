@@ -53,4 +53,4 @@ function scheduleCallback() {
   })
 }
 
-cron.schedule('*/2 * * * *', scheduleCallback)
+cron.schedule('*/5 * * * *', scheduleCallback)
