@@ -9,7 +9,6 @@ RUN npm i
 # Build dist
 RUN npm run build
 
-# Expose port 3000
-EXPOSE 3000
 
+# Run
 CMD npm run start
