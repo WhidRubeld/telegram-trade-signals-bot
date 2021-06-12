@@ -1,13 +1,10 @@
 FROM node:latest
 
-# Add package file
-COPY package*.json ./
+# Copy source
+COPY . .
 
 # Install deps
 RUN npm i
-
-# Copy source
-COPY . .
 
 # Build dist
 RUN npm run build
