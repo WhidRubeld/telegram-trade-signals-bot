@@ -1,0 +1,15 @@
+version: '3.7'
+
+services:
+  api-server:
+    build:
+      context: .
+    container_name: whiterabbit-bot-light
+    image: whiterabbit-bot-light
+    restart: unless-stopped
+    networks:
+      - whiterabbit-bot-light-network
+
+networks:
+  whiterabbit-bot-light-network:
+    driver: bridge
