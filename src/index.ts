@@ -36,9 +36,9 @@ function sendPairResult(
   let messageText = `${pair.name}\n\n`
   if (last) {
     messageText +=
-      `avarange: (${current.avarange}) => (${last.avarange})\n` +
-      `indicators: (${current.indicators}) => (${last.indicators})\n` +
-      `summary: (${current.summary}) => (${last.summary})\n`
+      `avarange:  (${last.avarange}) => (${current.avarange})\n` +
+      `indicators: => (${last.indicators}) => (${current.indicators})\n` +
+      `summary: (${last.summary}) => (${current.summary})\n`
   } else {
     messageText +=
       `avarange: (${current.avarange})\n` +
