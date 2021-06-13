@@ -37,7 +37,7 @@ function sendPairResult(
   if (last) {
     messageText +=
       `avarange:  (${last.avarange}) => (${current.avarange})\n` +
-      `indicators: => (${last.indicators}) => (${current.indicators})\n` +
+      `indicators: (${last.indicators}) => (${current.indicators})\n` +
       `summary: (${last.summary}) => (${current.summary})\n`
   } else {
     messageText +=
