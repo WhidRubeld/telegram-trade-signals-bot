@@ -7,7 +7,7 @@
     "dev": "ts-node src/index.ts",
     "pairs-list": "ts-node src/pairs-list.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "NODE_ENV=production node dist/index.js",
     "test": "jest"
   },
   "repository": {

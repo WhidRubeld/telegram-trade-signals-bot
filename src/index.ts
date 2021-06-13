@@ -9,13 +9,15 @@ import { Analyst } from './analyst'
 import { Pairs, PairType } from './constants'
 import { IConclusion, IConfig, IPairResponse } from './interfaces'
 
+const isProduction = process.env.NODE_ENV === 'development'
 const config = yaml.load(fs.readFileSync('config.yml', 'utf8')) as IConfig
 
-const client = redis.createClient()
+const client = !isProduction
+  ? redis.createClient()
+  : redis.createClient(process.env.REDIS_URL)
+
 const getCache = promisify(client.get).bind(client)
 const setCache = promisify(client.set).bind(client)
-
-console.log(process.env.NODE_ENV)
 
 function sendPairResult(
   conclusion: IConclusion,
