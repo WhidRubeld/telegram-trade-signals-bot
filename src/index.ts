@@ -63,10 +63,10 @@ async function processPairResult(pair: PairType, current: IPairResponse) {
     if (lastJson) {
       const last: IPairResponse = JSON.parse(lastJson)
       const conclusion = Analyst.activityAndDifferentConclusion(current, last)
-      // if (conclusion.status) sendPairResult(conclusion, pair, current, last)
+      if (conclusion.status) sendPairResult(conclusion, pair, current, last)
     } else {
       const conclusion = Analyst.activityConclusion(current)
-      // if (conclusion.status) sendPairResult(conclusion, pair, current)
+      if (conclusion.status) sendPairResult(conclusion, pair, current)
     }
 
     await setCache(`pair-${pair.name}`, JSON.stringify(current))
