@@ -1,15 +1,13 @@
 version: '3.7'
 
 services:
-  api-server:
-    build:
-      context: .
-    container_name: whiterabbit-bot-light
-    image: whiterabbit-bot-light
-    restart: unless-stopped
-    networks:
-      - whiterabbit-bot-light-network
-
-networks:
-  whiterabbit-bot-light-network:
-    driver: bridge
+  redis_db:
+    image: redis
+    ports:
+      - 6379:6379
+  worker:
+    build: worker
+    environment:
+      - REDIS_URL="redis://redis_db:6379"
+    depends_on:
+      - redis_db

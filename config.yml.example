@@ -1,0 +1,13 @@
+ telegram_token: 12345:abcdef
+
+chats:
+  # Первый пользователь
+  - id: 12345
+    pairs:
+      - ETH/BTC
+      - BTC/USDT
+      - ETH/USDT
+  # Второй пользователь
+  - id: 12345
+    exclude_pairs:
+      - ETH/BTC

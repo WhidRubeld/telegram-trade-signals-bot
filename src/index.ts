@@ -1,56 +1,91 @@
-import * as dotenv from 'dotenv'
+import fs from 'fs'
+import yaml from 'js-yaml'
 import cron from 'node-cron'
+import redis from 'redis'
+import { promisify } from 'util'
 
 import { getPairResponse, sendTelegramMessage } from './api'
-import { Pairs, Chats, PairType } from './constants'
-import { PairResponseNames, PairResponseResults } from './enums'
-import { IPairResponse } from './interfaces'
+import { Analyst } from './analyst'
+import { Pairs, PairType } from './constants'
+import { IConclusion, IConfig, IPairResponse } from './interfaces'
 
-dotenv.config()
+const config = yaml.load(fs.readFileSync('config.yml', 'utf8')) as IConfig
 
-function messageDispatchProcessing(pair: PairType, res: IPairResponse) {
-  const availableChats = Chats.filter((chat) => {
-    return chat.pairs.includes(pair)
+const client = redis.createClient()
+const getCache = promisify(client.get).bind(client)
+const setCache = promisify(client.set).bind(client)
+
+console.log(process.env.NODE_ENV)
+
+function sendPairResult(
+  conclusion: IConclusion,
+  pair: PairType,
+  current: IPairResponse,
+  last?: IPairResponse
+) {
+  const availableChats = config.chats.filter((chat) => {
+    const { pairs, exlucde_pairs } = chat
+
+    if (pairs) return pairs.includes(pair.name)
+    if (exlucde_pairs) return !exlucde_pairs.includes(pair.name)
+    return true
   })
 
-  const [first, second] = pair
-  const { avarange, indicators, summary } = res
-
-  const messageText =
-    `Пара: ${first} / ${second}\n\n` +
-    `Скол. средняя: ${PairResponseNames[avarange]}\n` +
-    `Индикаторы: ${PairResponseNames[indicators]}\n` +
-    `Заключение: ${PairResponseNames[summary]}\n`
+  let messageText = `${pair.name}\n\n`
+  if (last) {
+    messageText +=
+      `avarange: (${current.avarange}) => (${last.avarange})\n` +
+      `indicators: (${current.indicators}) => (${last.indicators})\n` +
+      `summary: (${current.summary}) => (${last.summary})\n`
+  } else {
+    messageText +=
+      `avarange: (${current.avarange})\n` +
+      `indicators: (${current.indicators})\n` +
+      `summary: (${current.summary})\n`
+  }
+  messageText += `\nconclusion: ${conclusion.action}\n`
 
   availableChats.forEach((chat) => {
-    sendTelegramMessage(chat.id, messageText).catch((e) => {
-      console.warn(
-        `${pair[0]}/${pair[1]}: Ошибка отправки сообщения в чат ${chat.id}`,
-        e
-      )
-    })
+    sendTelegramMessage(config.telegram_token, chat.id, messageText).catch(
+      () => {
+        console.warn(`Ошибка отправки сообщения в чат ${chat.id}`)
+      }
+    )
   })
 }
 
-function scheduleCallback() {
+async function processPairResult(pair: PairType, current: IPairResponse) {
+  try {
+    const lastJson = await getCache(`pair-${pair.name}`)
+
+    if (lastJson) {
+      const last: IPairResponse = JSON.parse(lastJson)
+      const conclusion = Analyst.activityAndDifferentConclusion(current, last)
+      // if (conclusion.status) sendPairResult(conclusion, pair, current, last)
+    } else {
+      const conclusion = Analyst.activityConclusion(current)
+      // if (conclusion.status) sendPairResult(conclusion, pair, current)
+    }
+
+    await setCache(`pair-${pair.name}`, JSON.stringify(current))
+  } catch (e) {
+    console.warn(`Ошибка обработки пары ${pair.name}`)
+  }
+}
+
+function scheduleCallback(): void {
   Pairs.forEach((pair) => {
     getPairResponse(pair)
       .then((res) => {
-        const values = Object.values(res)
-        if (
-          values.includes(PairResponseResults.BUY) ||
-          values.includes(PairResponseResults.SELL)
-        ) {
-          messageDispatchProcessing(pair, res)
-        }
+        processPairResult(pair, res)
       })
-      .catch((e) => {
-        console.warn(
-          `${pair[0]}/${pair[1]}: Ошибка отправки запроса данных по паре`,
-          e
-        )
+      .catch(() => {
+        // console.error(e)
+        console.warn(`Ошибка отправки запроса данных по паре ${pair.name}`)
       })
   })
 }
 
-cron.schedule('*/5 * * * *', scheduleCallback)
+// scheduleCallback()
+
+// cron.schedule('*/2 * * * *', scheduleCallback)
