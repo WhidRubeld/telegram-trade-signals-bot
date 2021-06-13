@@ -1,13 +1,14 @@
 version: '3.7'
 
 services:
-  redis_db:
+  redis:
     image: redis
-    ports:
-      - 6379:6379
+    container_name: cache
+    expose:
+      - 6379
   worker:
     build: .
+    links:
+      - redis
     environment:
-      - REDIS_URL="redis://redis_db:6379"
-    depends_on:
-      - redis_db
+      - REDIS_URL=redis://cache
