@@ -9,7 +9,7 @@ import { Analyst } from './analyst'
 import { Pairs, PairType } from './constants'
 import { IConclusion, IConfig, IPairResponse } from './interfaces'
 
-const isProduction = process.env.NODE_ENV === 'development'
+const isProduction = process.env.NODE_ENV === 'production'
 const config = yaml.load(fs.readFileSync('config.yml', 'utf8')) as IConfig
 
 const client = !isProduction
