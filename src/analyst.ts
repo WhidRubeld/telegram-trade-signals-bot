@@ -22,8 +22,6 @@ export class Analyst {
   ): IConclusion {
     const activityConclusion = this.activityConclusion(current)
 
-    console.log(!_.isEqual(current, last), current, last)
-
     if (activityConclusion.status && !_.isEqual(current, last)) {
       return activityConclusion
     }
