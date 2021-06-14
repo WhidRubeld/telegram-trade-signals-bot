@@ -155,5 +155,9 @@ export const Pairs: PairType[] = [
   {
     name: 'XMR/ETH',
     uri: 'https://ru.investing.com/indices/investing.com-xmr-eth'
+  },
+  {
+    name: 'LTC/BTC',
+    uri: 'https://ru.investing.com/indices/investing.com-xmr-eth'
   }
 ]
