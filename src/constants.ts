@@ -125,6 +125,10 @@ export const Pairs: PairType[] = [
     uri: 'https://ru.investing.com/indices/investing.com-doge-btc'
   },
   {
+    name: 'DOGE/ETH',
+    uri: 'https://ru.investing.com/indices/investing.com-doge-eth'
+  },
+  {
     name: 'UNI/BTC',
     uri: 'https://ru.investing.com/indices/investing.com-uni-btc'
   },
