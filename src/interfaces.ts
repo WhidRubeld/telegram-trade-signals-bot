@@ -1,9 +1,15 @@
 import { Conclusions } from './enum'
+import { PairType } from './constants'
 
 export interface IPairResponse {
   avarange: number[]
   indicators: number[]
   summary: number[]
+}
+
+export interface IPairResult {
+  pair: PairType
+  result: IPairResponse
 }
 
 export interface IChat {
@@ -20,4 +26,11 @@ export interface IConfig {
 export interface IConclusion {
   status: boolean
   action: Conclusions
+}
+
+export interface IPairOutput {
+  pair: PairType
+  current: IPairResponse
+  last: IPairResponse | undefined
+  conclusion: IConclusion
 }

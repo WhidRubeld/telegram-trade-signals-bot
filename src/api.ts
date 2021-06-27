@@ -1,14 +1,14 @@
 import axios from 'axios'
 import { PairType } from './constants'
-import { IPairResponse } from './interfaces'
+import { IPairResult } from './interfaces'
 import { parsePairResponse } from './parser'
 
-export function getPairResponse({ uri }: PairType): Promise<IPairResponse> {
-  return new Promise<IPairResponse>(async (resolve, reject) => {
+export function getPairResponse(pair: PairType): Promise<IPairResult> {
+  return new Promise<IPairResult>(async (resolve, reject) => {
     try {
-      const response = await axios.get(uri)
+      const response = await axios.get(pair.uri)
       const result = parsePairResponse(response)
-      resolve(result)
+      resolve({ pair, result })
     } catch (e) {
       reject(e)
     }

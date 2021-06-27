@@ -6,8 +6,15 @@ import { promisify } from 'util'
 
 import { getPairResponse, sendTelegramMessage } from './api'
 import { Analyst } from './analyst'
-import { Pairs, PairType } from './constants'
-import { IConclusion, IConfig, IPairResponse } from './interfaces'
+import { Pairs } from './constants'
+import {
+  IConclusion,
+  IConfig,
+  IPairOutput,
+  IPairResponse,
+  IPairResult
+} from './interfaces'
+import { MessageGenerator } from './utils'
 
 const isProduction = process.env.NODE_ENV === 'production'
 const config = yaml.load(fs.readFileSync('config.yml', 'utf8')) as IConfig
@@ -19,75 +26,59 @@ const client = !isProduction
 const getCache = promisify(client.get).bind(client)
 const setCache = promisify(client.set).bind(client)
 
-function sendPairResult(
-  conclusion: IConclusion,
-  pair: PairType,
-  current: IPairResponse,
-  last?: IPairResponse
-) {
-  const availableChats = config.chats.filter((chat) => {
-    const { pairs, exlucde_pairs } = chat
+function sendPairsResult(outputs: IPairOutput[]) {
+  outputs.forEach((output, index) => {
+    const { pair, conclusion } = output
+    if (!conclusion.status) return
 
-    if (pairs) return pairs.includes(pair.name)
-    if (exlucde_pairs) return !exlucde_pairs.includes(pair.name)
-    return true
-  })
+    const availableChats = config.chats.filter((chat) => {
+      const { pairs, exlucde_pairs } = chat
+      if (pairs) return pairs.includes(pair.name)
+      if (exlucde_pairs) return !exlucde_pairs.includes(pair.name)
+      return true
+    })
+    const message = MessageGenerator(outputs, index)
 
-  let messageText = `${pair.name}\n\n`
-  if (last) {
-    messageText +=
-      `avarange:  (${last.avarange}) => (${current.avarange})\n` +
-      `indicators: (${last.indicators}) => (${current.indicators})\n` +
-      `summary: (${last.summary}) => (${current.summary})\n`
-  } else {
-    messageText +=
-      `avarange: (${current.avarange})\n` +
-      `indicators: (${current.indicators})\n` +
-      `summary: (${current.summary})\n`
-  }
-  messageText += `\nconclusion: ${conclusion.action}\n`
-
-  availableChats.forEach((chat) => {
-    sendTelegramMessage(config.telegram_token, chat.id, messageText).catch(
-      () => {
+    availableChats.forEach((chat) => {
+      sendTelegramMessage(config.telegram_token, chat.id, message).catch(() => {
         console.warn(`Ошибка отправки сообщения в чат ${chat.id}`)
-      }
-    )
+      })
+    })
   })
 }
 
-async function processPairResult(pair: PairType, current: IPairResponse) {
+async function processPairResult(response: IPairResult[]) {
+  let output: IPairOutput[] = []
+
   try {
-    const lastJson = await getCache(`pair-${pair.name}`)
+    for (const item of response) {
+      const lastJson = await getCache(`pair-${item.pair.name}`)
+      let conclusion: IConclusion, last: IPairResponse | undefined
 
-    if (lastJson) {
-      const last: IPairResponse = JSON.parse(lastJson)
-      const conclusion = Analyst.activityAndDifferentConclusion(current, last)
-      if (conclusion.status) sendPairResult(conclusion, pair, current, last)
-    } else {
-      const conclusion = Analyst.activityConclusion(current)
-      if (conclusion.status) sendPairResult(conclusion, pair, current)
+      if (lastJson) {
+        last = JSON.parse(lastJson)
+        conclusion = Analyst.activityAndDifferentConclusion(item.result, last)
+      } else {
+        conclusion = Analyst.activityConclusion(item.result)
+      }
+      output.push({ pair: item.pair, current: item.result, last, conclusion })
+      await setCache(`pair-${item.pair.name}`, JSON.stringify(item.result))
     }
-
-    await setCache(`pair-${pair.name}`, JSON.stringify(current))
   } catch (e) {
-    console.warn(`Ошибка обработки пары ${pair.name}`)
+    console.warn(e)
   }
+
+  sendPairsResult(output)
 }
 
 function scheduleCallback(): void {
-  Pairs.forEach((pair) => {
-    getPairResponse(pair)
-      .then((res) => {
-        processPairResult(pair, res)
-      })
-      .catch(() => {
-        // console.error(e)
-        console.warn(`Ошибка отправки запроса данных по паре ${pair.name}`)
-      })
-  })
+  Promise.all(Pairs.map(getPairResponse))
+    .then(processPairResult)
+    .catch((e) => {
+      console.warn(e)
+    })
 }
 
-// scheduleCallback()
+scheduleCallback()
 
-cron.schedule('*/5 * * * *', scheduleCallback)
+// cron.schedule('*/5 * * * *', scheduleCallback)
