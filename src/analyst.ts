@@ -9,14 +9,12 @@ enum ActivityDirection {
 export class Analyst {
   static activityReduce(value: number[], direction: ActivityDirection) {
     return value.reduce((acc: number, v: number) => {
-      return direction === ActivityDirection.UP
-        ? v > 0
-          ? acc + 1
-          : acc
-        : v < 0
-        ? acc + 1
-        : acc
-    })
+      if (direction === ActivityDirection.UP) {
+        return v > 0 ? acc + 1 : acc
+      }
+
+      return v < 0 ? acc + 1 : acc
+    }, 0)
   }
 
   static activityConclusion(response: IPairResponse): IConclusion {
@@ -37,6 +35,7 @@ export class Analyst {
     last: IPairResponse
   ): IConclusion {
     const activityConclusion = this.activityConclusion(current)
+    // console.log(current, activityConclusion)
 
     if (activityConclusion.status && !_.isEqual(current, last)) {
       return activityConclusion
