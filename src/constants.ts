@@ -38,10 +38,6 @@ export const Pairs: PairType[] = [
     uri: 'https://ru.investing.com/indices/investing.com-xrp-btc'
   },
   {
-    name: 'ADA/ETH',
-    uri: 'https://ru.investing.com/indices/investing.com-ada-eth'
-  },
-  {
     name: 'DOGE/ETH',
     uri: 'https://ru.investing.com/indices/investing.com-doge-eth'
   },
