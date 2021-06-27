@@ -79,6 +79,6 @@ function scheduleCallback(): void {
     })
 }
 
-scheduleCallback()
+// scheduleCallback()
 
-// cron.schedule('*/5 * * * *', scheduleCallback)
+cron.schedule('*/5 * * * *', scheduleCallback)
