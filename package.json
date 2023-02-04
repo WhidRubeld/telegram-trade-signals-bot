@@ -1,5 +1,5 @@
 {
-  "name": "whiterabbit_bot_light",
+  "name": "telegram-trade-signals-server",
   "version": "0.0.2",
   "description": "",
   "main": "dist/index.js",
