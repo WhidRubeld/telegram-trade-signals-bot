@@ -1,1 +1,2 @@
-# WhiteRabbit_Bot_Light
+# Trade signals
+Node.js trade signals bot server for Telegram
